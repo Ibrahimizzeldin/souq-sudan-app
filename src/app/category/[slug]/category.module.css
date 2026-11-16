@@ -1,0 +1,180 @@
+.page {
+  min-height: 100vh;
+  background: #f7f8fa;
+  color: #172033;
+}
+
+.header {
+  background: white;
+  border-bottom: 1px solid #e5e9ef;
+}
+
+.headerContent {
+  width: min(1180px, 92%);
+  min-height: 75px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 21px;
+  font-weight: 800;
+  text-decoration: none;
+  color: #172033;
+}
+
+.logoMark {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  color: white;
+  background: #087f5b;
+  border-radius: 12px;
+}
+
+.homeLink,
+.backLink {
+  color: #087f5b;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.container {
+  width: min(1180px, 92%);
+  margin: 35px auto 70px;
+}
+
+.breadcrumb {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  color: #778196;
+  font-size: 13px;
+  margin-bottom: 30px;
+}
+
+.breadcrumb a {
+  color: #087f5b;
+  text-decoration: none;
+}
+
+.intro {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 28px;
+  background: white;
+  border: 1px solid #e5e9ef;
+  border-radius: 16px;
+}
+
+.categoryIcon {
+  width: 75px;
+  height: 75px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: #eaf7f1;
+  border-radius: 17px;
+  font-size: 38px;
+}
+
+.intro h1 {
+  margin: 0 0 7px;
+  font-size: 25px;
+}
+
+.intro p {
+  margin: 0;
+  color: #778196;
+  font-size: 14px;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin: 35px 0 20px;
+}
+
+.toolbar h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.toolbar span {
+  color: #778196;
+  font-size: 12px;
+}
+
+.emptyState {
+  padding: 55px 20px;
+  background: white;
+  border: 1px solid #e5e9ef;
+  border-radius: 16px;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 45px;
+}
+
+.emptyState h3 {
+  margin: 15px 0 8px;
+  font-size: 19px;
+}
+
+.emptyState p {
+  max-width: 430px;
+  margin: 0 auto 22px;
+  color: #778196;
+  font-size: 13px;
+  line-height: 2;
+}
+
+.publishButton {
+  display: inline-block;
+  padding: 11px 22px;
+  color: white;
+  background: #087f5b;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.backLink {
+  display: inline-block;
+  margin-top: 25px;
+  font-size: 13px;
+}
+
+@media (max-width: 600px) {
+  .intro {
+    padding: 20px;
+    gap: 13px;
+  }
+
+  .categoryIcon {
+    width: 58px;
+    height: 58px;
+    font-size: 29px;
+  }
+
+  .intro h1 {
+    font-size: 20px;
+  }
+
+  .toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  }
