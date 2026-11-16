@@ -1,225 +1,140 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
-  const [phone, setPhone] = useState("");
+  const router = useRouter();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    alert("سيتم تفعيل تسجيل الدخول بعد ربط نظام الحسابات.");
+    setLoading(true);
+    setError("");
+
+    try {
+      const supabase = createClient();
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (error) throw error;
+
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "تعذر تسجيل الدخول."
+      );
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <main className="login-page">
-      <header className="login-header">
-        <a href="/" className="login-logo">
-          <span>س</span>
-          سوق السودان
-        </a>
-      </header>
+    <main
+      dir="rtl"
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 20,
+        background: "#f5f7fb",
+      }}
+    >
+      <section
+        style={{
+          width: "100%",
+          maxWidth: 420,
+          padding: 28,
+          background: "#fff",
+          borderRadius: 18,
+          boxShadow: "0 8px 30px #00000010",
+        }}
+      >
+        <h1 style={{ fontSize: 26, fontWeight: 800 }}>
+          تسجيل الدخول
+        </h1>
 
-      <section className="login-container">
-        <div className="login-card">
-          <div className="login-icon">👋</div>
+        <p style={{ color: "#64748b", margin: "10px 0 25px" }}>
+          مرحباً بك مجدداً في سوق السودان.
+        </p>
 
-          <h1>مرحباً بعودتك</h1>
-          <p className="login-description">
-            سجل دخولك لمتابعة إعلاناتك والتواصل مع البائعين.
-          </p>
+        <form
+          onSubmit={handleLogin}
+          style={{ display: "grid", gap: 16 }}
+        >
+          <input
+            required
+            type="email"
+            placeholder="البريد الإلكتروني"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={inputStyle}
+          />
 
-          <form onSubmit={handleSubmit}>
-            <label htmlFor="phone">رقم الهاتف</label>
-            <input
-              id="phone"
-              type="tel"
-              placeholder="مثال: 0912345678"
-              value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-              required
-            />
+          <input
+            required
+            type="password"
+            placeholder="كلمة المرور"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={inputStyle}
+          />
 
-            <label htmlFor="password">كلمة المرور</label>
-            <input
-              id="password"
-              type="password"
-              placeholder="أدخل كلمة المرور"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
+          {error && (
+            <p style={{ color: "#dc2626", fontSize: 14 }}>
+              {error}
+            </p>
+          )}
 
-            <button type="submit" className="login-submit">
-              تسجيل الدخول
-            </button>
-          </form>
+          <button
+            disabled={loading}
+            type="submit"
+            style={{
+              ...inputStyle,
+              border: 0,
+              background: "#155eef",
+              color: "#fff",
+              fontWeight: 700,
+              cursor: "pointer",
+              opacity: loading ? 0.6 : 1,
+            }}
+          >
+            {loading ? "جارٍ تسجيل الدخول..." : "دخول"}
+          </button>
+        </form>
 
-          <div className="login-divider">
-            <span>أو</span>
-          </div>
-
-          <p className="signup-text">
-            ليس لديك حساب؟
-            <a href="/register"> أنشئ حساباً جديداً</a>
-          </p>
-
-          <a href="/" className="back-home">
-            العودة إلى الصفحة الرئيسية
-          </a>
-        </div>
+        <p style={{ marginTop: 22, textAlign: "center" }}>
+          ليس لديك حساب؟{" "}
+          <Link
+            href="/register"
+            style={{ color: "#155eef", fontWeight: 700 }}
+          >
+            إنشاء حساب
+          </Link>
+        </p>
       </section>
-
-      <style jsx>{`
-        .login-page {
-          min-height: 100vh;
-          background: #f7f8fa;
-        }
-
-        .login-header {
-          background: white;
-          padding: 18px 5%;
-          border-bottom: 1px solid #e5e9ef;
-        }
-
-        .login-logo {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          color: #172033;
-          font-size: 21px;
-          font-weight: 800;
-        }
-
-        .login-logo span {
-          display: grid;
-          place-items: center;
-          width: 40px;
-          height: 40px;
-          border-radius: 12px;
-          color: white;
-          background: #087f5b;
-        }
-
-        .login-container {
-          min-height: calc(100vh - 78px);
-          display: grid;
-          place-items: center;
-          padding: 35px 16px;
-        }
-
-        .login-card {
-          width: 100%;
-          max-width: 440px;
-          padding: 35px;
-          background: white;
-          border: 1px solid #e5e9ef;
-          border-radius: 18px;
-          box-shadow: 0 12px 35px rgba(0,0,0,.04);
-          text-align: center;
-        }
-
-        .login-icon {
-          font-size: 42px;
-          margin-bottom: 10px;
-        }
-
-        h1 {
-          margin: 0 0 8px;
-          font-size: 25px;
-          color: #172033;
-        }
-
-        .login-description {
-          margin: 0 0 28px;
-          color: #778196;
-          font-size: 13px;
-          line-height: 1.9;
-        }
-
-        form {
-          text-align: right;
-        }
-
-        label {
-          display: block;
-          margin: 17px 0 7px;
-          color: #344054;
-          font-size: 13px;
-          font-weight: 700;
-        }
-
-        input {
-          width: 100%;
-          padding: 13px;
-          border: 1px solid #e0e5eb;
-          border-radius: 10px;
-          outline: none;
-          background: #fff;
-          color: #172033;
-        }
-
-        input:focus {
-          border-color: #087f5b;
-          box-shadow: 0 0 0 3px rgba(8,127,91,.08);
-        }
-
-        .login-submit {
-          width: 100%;
-          margin-top: 25px;
-          padding: 13px;
-          border: 0;
-          border-radius: 10px;
-          color: white;
-          background: #087f5b;
-          font-weight: 800;
-          cursor: pointer;
-        }
-
-        .login-submit:hover {
-          background: #066548;
-        }
-
-        .login-divider {
-          margin: 25px 0;
-          border-bottom: 1px solid #e5e9ef;
-          position: relative;
-        }
-
-        .login-divider span {
-          position: relative;
-          top: 10px;
-          padding: 0 12px;
-          background: white;
-          color: #778196;
-          font-size: 12px;
-        }
-
-        .signup-text {
-          margin-top: 25px;
-          font-size: 13px;
-          color: #596477;
-        }
-
-        .signup-text a,
-        .back-home {
-          color: #087f5b;
-          font-weight: 800;
-        }
-
-        .back-home {
-          display: inline-block;
-          margin-top: 22px;
-          font-size: 13px;
-        }
-
-        @media (max-width: 480px) {
-          .login-card {
-            padding: 25px 20px;
-          }
-        }
-      `}</style>
     </main>
   );
 }
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  boxSizing: "border-box",
+  padding: 14,
+  border: "1px solid #dbe2ea",
+  borderRadius: 10,
+  fontSize: 15,
+  background: "#fff",
+};
+          
