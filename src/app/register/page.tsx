@@ -1,243 +1,112 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleRegister(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setLoading(true);
+    setMessage("");
+    setError("");
 
-    if (password !== confirmPassword) {
-      alert("كلمتا المرور غير متطابقتين.");
-      return;
+    try {
+      const supabase = createClient();
+
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          data: { full_name: name.trim() },
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.session) {
+        router.push("/");
+        router.refresh();
+      } else {
+        setMessage(
+          "تم إنشاء حسابك. افحص بريدك الإلكتروني واضغط رابط التأكيد لإكمال التسجيل."
+        );
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "تعذر إنشاء الحساب."
+      );
+    } finally {
+      setLoading(false);
     }
-
-    if (password.length < 6) {
-      alert("يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.");
-      return;
-    }
-
-    alert("سيتم تفعيل إنشاء الحساب بعد ربط نظام الحسابات.");
   }
 
   return (
-    <main className="register-page">
-      <header className="register-header">
-        <a href="/" className="register-logo">
-          <span>س</span>
-          سوق السودان
-        </a>
-      </header>
+    <main className="min-h-screen flex items-center justify-center p-5" dir="rtl">
+      <section className="w-full max-w-md rounded-2xl bg-white p-7 shadow-lg">
+        <h1 className="text-2xl font-bold mb-2">إنشاء حساب جديد</h1>
+        <p className="text-gray-500 mb-6">
+          انضم إلى سوق السودان وابدأ البيع والشراء.
+        </p>
 
-      <section className="register-container">
-        <div className="register-card">
-          <div className="register-icon">🛍️</div>
+        <form onSubmit={handleRegister} className="space-y-4">
+          <input
+            required
+            type="text"
+            placeholder="الاسم الكامل"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full rounded-lg border p-3"
+          />
 
-          <h1>أنشئ حسابك</h1>
-          <p className="register-description">
-            انضم إلى سوق السودان وابدأ البيع والشراء بسهولة.
-          </p>
+          <input
+            required
+            type="email"
+            placeholder="البريد الإلكتروني"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full rounded-lg border p-3"
+          />
 
-          <form onSubmit={handleSubmit}>
-            <label htmlFor="name">الاسم الكامل</label>
-            <input
-              id="name"
-              type="text"
-              placeholder="أدخل اسمك"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              required
-            />
+          <input
+            required
+            minLength={6}
+            type="password"
+            placeholder="كلمة المرور (6 أحرف على الأقل)"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full rounded-lg border p-3"
+          />
 
-            <label htmlFor="phone">رقم الهاتف</label>
-            <input
-              id="phone"
-              type="tel"
-              placeholder="مثال: 0912345678"
-              value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-              required
-            />
+          {error && <p className="text-red-600 text-sm">{error}</p>}
+          {message && <p className="text-green-700 text-sm">{message}</p>}
 
-            <label htmlFor="password">كلمة المرور</label>
-            <input
-              id="password"
-              type="password"
-              placeholder="6 أحرف على الأقل"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              minLength={6}
-              required
-            />
+          <button
+            disabled={loading}
+            type="submit"
+            className="w-full rounded-lg bg-blue-700 p-3 font-bold text-white disabled:opacity-50"
+          >
+            {loading ? "جارٍ إنشاء الحساب..." : "إنشاء الحساب"}
+          </button>
+        </form>
 
-            <label htmlFor="confirmPassword">تأكيد كلمة المرور</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              placeholder="أعد كتابة كلمة المرور"
-              value={confirmPassword}
-              onChange={(event) =>
-                setConfirmPassword(event.target.value)
-              }
-              minLength={6}
-              required
-            />
-
-            <button type="submit" className="register-submit">
-              إنشاء الحساب
-            </button>
-          </form>
-
-          <p className="login-text">
-            لديك حساب بالفعل؟
-            <a href="/login"> سجل دخولك</a>
-          </p>
-
-          <a href="/" className="back-home">
-            العودة إلى الرئيسية
-          </a>
-        </div>
+        <p className="mt-5 text-center text-sm text-gray-600">
+          لديك حساب بالفعل؟{" "}
+          <Link href="/login" className="font-bold text-blue-700">
+            تسجيل الدخول
+          </Link>
+        </p>
       </section>
-
-      <style jsx>{`
-        .register-page {
-          min-height: 100vh;
-          background: #f7f8fa;
-        }
-
-        .register-header {
-          background: white;
-          padding: 18px 5%;
-          border-bottom: 1px solid #e5e9ef;
-        }
-
-        .register-logo {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          color: #172033;
-          font-size: 21px;
-          font-weight: 800;
-        }
-
-        .register-logo span {
-          display: grid;
-          place-items: center;
-          width: 40px;
-          height: 40px;
-          border-radius: 12px;
-          color: white;
-          background: #087f5b;
-        }
-
-        .register-container {
-          min-height: calc(100vh - 78px);
-          display: grid;
-          place-items: center;
-          padding: 35px 16px;
-        }
-
-        .register-card {
-          width: 100%;
-          max-width: 460px;
-          padding: 35px;
-          background: white;
-          border: 1px solid #e5e9ef;
-          border-radius: 18px;
-          box-shadow: 0 12px 35px rgba(0,0,0,.04);
-          text-align: center;
-        }
-
-        .register-icon {
-          font-size: 42px;
-          margin-bottom: 10px;
-        }
-
-        h1 {
-          margin: 0 0 8px;
-          font-size: 25px;
-          color: #172033;
-        }
-
-        .register-description {
-          margin: 0 0 25px;
-          color: #778196;
-          font-size: 13px;
-          line-height: 1.9;
-        }
-
-        form {
-          text-align: right;
-        }
-
-        label {
-          display: block;
-          margin: 15px 0 7px;
-          color: #344054;
-          font-size: 13px;
-          font-weight: 700;
-        }
-
-        input {
-          width: 100%;
-          padding: 13px;
-          border: 1px solid #e0e5eb;
-          border-radius: 10px;
-          outline: none;
-          background: #fff;
-          color: #172033;
-        }
-
-        input:focus {
-          border-color: #087f5b;
-          box-shadow: 0 0 0 3px rgba(8,127,91,.08);
-        }
-
-        .register-submit {
-          width: 100%;
-          margin-top: 25px;
-          padding: 13px;
-          border: 0;
-          border-radius: 10px;
-          color: white;
-          background: #087f5b;
-          font-weight: 800;
-          cursor: pointer;
-        }
-
-        .register-submit:hover {
-          background: #066548;
-        }
-
-        .login-text {
-          margin-top: 25px;
-          color: #596477;
-          font-size: 13px;
-        }
-
-        .login-text a,
-        .back-home {
-          color: #087f5b;
-          font-weight: 800;
-        }
-
-        .back-home {
-          display: inline-block;
-          margin-top: 15px;
-          font-size: 13px;
-        }
-
-        @media (max-width: 480px) {
-          .register-card {
-            padding: 25px 20px;
-          }
-        }
-      `}</style>
     </main>
   );
 }
