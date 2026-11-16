@@ -1,58 +1,70 @@
 
-const categories = [
-  { icon: "🚗", name: "سيارات ومركبات", count: "بيع وشراء السيارات" },
-  { icon: "🏠", name: "عقارات", count: "منازل وأراضٍ وشقق" },
-  { icon: "📱", name: "هواتف وإلكترونيات", count: "أجهزة ومستلزمات" },
-  { icon: "🐔", name: "حيوانات وطيور", count: "دواجن ومواشي وطيور" },
-  { icon: "🪑", name: "أثاث ومنزل", count: "أثاث وأجهزة منزلية" },
-  { icon: "💼", name: "وظائف وخدمات", count: "فرص عمل وخدمات" },
-  { icon: "👕", name: "ملابس وأزياء", count: "ملابس وإكسسوارات" },
-  { icon: "📦", name: "أخرى", count: "إعلانات متنوعة" },
-];
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 
-const ads = [
-  {
-    icon: "🚙",
-    title: "سيارات للبيع في السودان",
-    description: "تصفح أحدث عروض السيارات",
-    price: "تصفح الإعلانات",
-    category: "سيارات",
-  },
-  {
-    icon: "🏡",
-    title: "عقارات للبيع والإيجار",
-    description: "بيوت وشقق وأراضٍ",
-    price: "تصفح الإعلانات",
-    category: "عقارات",
-  },
-  {
-    icon: "🐓",
-    title: "دواجن وطيور",
-    description: "دجاج وطيور ومستلزمات تربية",
-    price: "تصفح الإعلانات",
-    category: "حيوانات",
-  },
-];
+const icons: Record<string, string> = {
+  vehicles: "🚗",
+  "real-estate": "🏠",
+  electronics: "📱",
+  home: "🪑",
+  animals: "🐓",
+  "jobs-services": "💼",
+  fashion: "👕",
+  other: "📦",
+};
 
-export default function HomePage() {
+export default async function HomePage() {
+  let categories: any[] = [];
+  let ads: any[] = [];
+
+  try {
+    const supabase = await createClient();
+
+    const [categoryResult, adResult] = await Promise.all([
+      supabase
+        .from("categories")
+        .select("id,name_ar,slug")
+        .eq("is_active", true)
+        .order("sort_order"),
+
+      supabase
+        .from("ads")
+        .select(`
+          id,title,price,currency,city,created_at,
+          categories(name_ar,slug),
+          ad_images(image_url,sort_order)
+        `)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(12),
+    ]);
+
+    categories = categoryResult.data ?? [];
+    ads = adResult.data ?? [];
+  } catch {
+    categories = [];
+    ads = [];
+  }
+
   return (
-    <main>
+    <main dir="rtl">
       <header className="topbar">
         <div className="container nav">
-          <a className="logo" href="/">
-            <span className="logo-icon">س</span>
-            <span>سوق <b>السودان</b></span>
-          </a>
+          <Link href="/" className="logo">
+            سوق <b>السودان</b>
+          </Link>
 
           <nav className="nav-links">
-            <a href="/">الرئيسية</a>
+            <Link href="/">الرئيسية</Link>
             <a href="#categories">الأقسام</a>
             <a href="#ads">الإعلانات</a>
           </nav>
 
           <div className="nav-actions">
-            <a className="login-link" href="/login">دخول</a>
-            <a className="post-button" href="/post">＋ أضف إعلانك</a>
+            <Link href="/login">دخول</Link>
+            <Link href="/post" className="post-button">
+              + أضف إعلانك
+            </Link>
           </div>
         </div>
       </header>
@@ -60,26 +72,26 @@ export default function HomePage() {
       <section className="hero">
         <div className="container hero-content">
           <span className="hero-tag">السوق السوداني في مكان واحد</span>
-          <h1>بيع واشتري بكل سهولة<br />
+
+          <h1>
+            بيع واشتري بكل سهولة
+            <br />
             <span>في سوق السودان</span>
           </h1>
+
           <p>
-            اكتشف آلاف المنتجات والعروض، أو انشر إعلانك
-            للوصول إلى المشترين في جميع أنحاء السودان.
+            اكتشف المنتجات والعقارات والسيارات والخدمات
+            المعروضة للبيع في جميع أنحاء السودان.
           </p>
 
-          <form className="search-box" action="/search">
+          <form action="/search" className="search-box">
             <input
               type="search"
               name="q"
-              placeholder="ماذا تبحث عنه؟ سيارة، منزل، هاتف..."
+              placeholder="ماذا تبحث عنه؟"
             />
             <button type="submit">ابحث الآن</button>
           </form>
-
-          <div className="hero-note">
-            <span>✓</span> منصة إعلانات مبوبة للسوق السوداني
-          </div>
         </div>
       </section>
 
@@ -89,20 +101,21 @@ export default function HomePage() {
             <span className="eyebrow">تصفح السوق</span>
             <h2>الأقسام الرئيسية</h2>
           </div>
-          <span className="muted">اختر القسم المناسب لك</span>
         </div>
 
         <div className="category-grid">
           {categories.map((category) => (
-            <a
+            <Link
+              href={`/category/${category.slug}`}
               className="category-card"
-              href={`/category/${encodeURIComponent(category.name)}`}
-              key={category.name}
+              key={category.id}
             >
-              <span className="category-icon">{category.icon}</span>
-              <strong>{category.name}</strong>
-              <small>{category.count}</small>
-            </a>
+              <span className="category-icon">
+                {icons[category.slug] ?? "📦"}
+              </span>
+              <strong>{category.name_ar}</strong>
+              <small>تصفح الإعلانات</small>
+            </Link>
           ))}
         </div>
       </section>
@@ -111,25 +124,65 @@ export default function HomePage() {
         <div className="container">
           <div className="section-heading">
             <div>
-              <span className="eyebrow">اكتشف المزيد</span>
-              <h2>إعلانات السوق</h2>
+              <span className="eyebrow">أحدث المعروض</span>
+              <h2>أحدث الإعلانات</h2>
             </div>
-            <span className="muted">نماذج للأقسام المتاحة</span>
+            <Link href="/search">عرض الكل ←</Link>
           </div>
 
-          <div className="ads-grid">
-            {ads.map((ad) => (
-              <article className="ad-card" key={ad.title}>
-                <div className="ad-image">{ad.icon}</div>
-                <div className="ad-info">
-                  <span className="ad-category">{ad.category}</span>
-                  <h3>{ad.title}</h3>
-                  <p>{ad.description}</p>
-                  <strong>{ad.price}</strong>
-                </div>
-              </article>
-            ))}
-          </div>
+          {ads.length > 0 ? (
+            <div className="ads-grid">
+              {ads.map((ad) => {
+                const image = [...(ad.ad_images ?? [])]
+                  .sort(
+                    (a: any, b: any) =>
+                      a.sort_order - b.sort_order
+                  )[0]?.image_url;
+
+                return (
+                  <Link
+                    href={`/ad/${ad.id}`}
+                    className="ad-card"
+                    key={ad.id}
+                  >
+                    {image ? (
+                      <img
+                        src={image}
+                        alt={ad.title}
+                        className="ad-photo"
+                      />
+                    ) : (
+                      <div className="ad-image">🛍️</div>
+                    )}
+
+                    <div className="ad-info">
+                      <span className="ad-category">
+                        {ad.categories?.name_ar ?? "إعلان"}
+                      </span>
+
+                      <h3>{ad.title}</h3>
+                      <p>{ad.city ?? "السودان"}</p>
+
+                      <strong>
+                        {ad.price == null
+                          ? "السعر عند التواصل"
+                          : `${new Intl.NumberFormat("ar-SD").format(ad.price)} ${ad.currency === "SDG" ? "ج.س" : ad.currency}`}
+                      </strong>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <div>🛍️</div>
+              <h3>لا توجد إعلانات منشورة حالياً</h3>
+              <p>كن أول من يعرض منتجه في سوق السودان.</p>
+              <Link href="/post" className="post-button">
+                أضف أول إعلان
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -138,16 +191,16 @@ export default function HomePage() {
           <h2>لديك شيء تريد بيعه؟</h2>
           <p>انشر إعلانك وابدأ الوصول إلى المشترين.</p>
         </div>
-        <a href="/post">أضف إعلاناً الآن ←</a>
+        <Link href="/post">أضف إعلاناً الآن ←</Link>
       </section>
 
       <footer className="footer">
         <div className="container footer-content">
           <strong>سوق السودان</strong>
-          <span>منصة سودانية للبيع والشراء والإعلانات المبوبة.</span>
+          <span>منصة سودانية للبيع والشراء.</span>
           <small>© {new Date().getFullYear()} سوق السودان</small>
         </div>
       </footer>
     </main>
   );
-          }
+                    }
